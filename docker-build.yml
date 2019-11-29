@@ -1,0 +1,32 @@
+---
+build:
+  stage: build
+  tags:
+    - docker
+  # Setup buildx cache
+  cache:
+    paths:
+      - .build-cache
+  # Set run command default to empty, can be used for /bin/sleep 10
+  variables:
+    BUILDX_VERSION: 0.3.1
+
+    # To make it possible to pass args from a downstream include
+    DOCKER_BUILD_ARGS: ""
+    DOCKER_BUILD_PLATFORMS: linux/arm64/v8,linux/amd64,linux/arm/v6,linux/arm/v7,linux/386
+
+  script:
+    # Setup buildx
+    - wget -O /usr/local/bin/buildx https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-amd64
+    - sudo chmod a+x /usr/local/bin/buildx
+    - docker run --rm --privileged hypriot/qemu-register
+    - buildx create --use
+
+    # Build and push container
+    - buildx build \
+      --platform ${DOCKER_BUILD_PLATFORMS} \
+      --tag ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA} \
+      --push \
+      # --cache-from=type=local,src=path/to/cache \
+      # --cache-to=type=local,src=path/to/cache \
+      .
