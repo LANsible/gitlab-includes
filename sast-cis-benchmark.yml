@@ -1,0 +1,35 @@
+# Run CIS benchmarks against the images/containers
+sast_cis_benchmark:
+  stage: post-build
+  tags:
+    - docker
+  # Skip if fails, for now
+  allow_failure: true
+  # Set run command default to empty, can be used for /bin/sleep 10
+  variables:
+    DOCKER_RUN_COMMAND: docker run -d --rm ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
+  # Pull the image and only check against container_images
+  script:
+    - eval ${DOCKER_RUN_COMMAND}
+    # Run CIS benchmark, send output to console and artifact
+    # Exit with status code 1 if "[WARN] was found in output
+    - benchmark_output=$(docker run
+        --net host
+        --pid host
+        --userns host
+        --cap-add audit_control
+        -v /var/lib:/var/lib
+        -v /var/run/docker.sock:/var/run/docker.sock
+        -v /usr/lib/systemd:/usr/lib/systemd
+        -v /etc:/etc
+        --label docker_bench_security
+        docker/docker-bench-security
+        -c container_images);
+      echo "${benchmark_output}";
+      echo "${benchmark_output}" | sed -r "s/\x1B\[[0-9;]*[JKmsu]//g" > sast-cis-benchmark.txt;
+      if echo "${benchmark_output}" | grep -q "\[WARN\]"; then exit 1; fi
+  # Collect the artifacts in case of failure
+  artifacts:
+    paths:
+      - sast-cis-benchmark.txt
+    when: on_failure
