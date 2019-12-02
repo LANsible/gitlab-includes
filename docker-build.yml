@@ -27,6 +27,4 @@ build:
       --platform ${DOCKER_BUILD_PLATFORMS} \
       --tag ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA} \
       --push \
-      # --cache-from=type=local,src=path/to/cache \
-      # --cache-to=type=local,src=path/to/cache \
       .
