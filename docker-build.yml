@@ -23,8 +23,8 @@ build:
     - buildx create --use
 
     # Build and push container
-    - buildx build \
-      --platform ${DOCKER_BUILD_PLATFORMS} \
-      --tag ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA} \
-      --push \
+    - buildx build
+      --platform ${DOCKER_BUILD_PLATFORMS}
+      --tag ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
+      --push
       .
