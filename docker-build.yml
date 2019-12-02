@@ -39,14 +39,14 @@ build:
   extends: .build
   stage: build
 
-# Publish master image
-publish_master:
+# Publish branch image
+publish_branch:
   extends: .build
   stage: publish
   only:
-    - master
+    - branches
   variables:
-    DOCKER_IMAGE_TAG: master
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
 
 # Publish tagged release
 publish_tag:
