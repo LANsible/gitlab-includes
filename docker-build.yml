@@ -1,19 +1,17 @@
 ---
-build:
-  stage: build
+.build:
   tags:
     - docker
-  # Setup buildx cache
-  cache:
-    paths:
-      - .build-cache
-  # Set run command default to empty, can be used for /bin/sleep 10
   variables:
     BUILDX_VERSION: 0.3.1
 
     # To make it possible to pass args from a downstream include
     DOCKER_BUILD_ARGS: ""
     DOCKER_BUILD_PLATFORMS: linux/arm64/v8,linux/amd64,linux/arm/v6,linux/arm/v7,linux/386
+
+    # Default push to internal Gitlab registry
+    DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
 
   script:
     # Setup buildx
@@ -23,8 +21,53 @@ build:
     - buildx create --use
 
     # Build and push container
-    - buildx build
-      --platform ${DOCKER_BUILD_PLATFORMS}
-      --tag ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
-      --push
-      .
+    - if [ -z "$DOCKER_BUILD_ARGS" ]; then
+        buildx build
+        --platform ${DOCKER_BUILD_PLATFORMS}
+        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+        --push
+        .
+      else
+        buildx build
+        --platform ${DOCKER_BUILD_PLATFORMS}
+        --build-args "${DOCKER_BUILD_ARGS}"
+        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+        --push
+        .
+      fi
+
+# Build stage
+build:
+  extends: .build
+  stage: build
+
+# Publish master image
+publish_master:
+  extends: .build
+  stage: publish
+  only:
+    - master
+  variables:
+    DOCKER_IMAGE_TAG: master
+
+# Publish tagged release
+publish_tag:
+  extends: .build
+  stage: publish
+  only:
+    - tags
+  except:
+    - branches
+  variables:
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
+
+# Publish tagged release
+publish_latest:
+  extends: .build
+  stage: publish
+  only:
+    - tags
+  except:
+    - branches
+  variables:
+    DOCKER_IMAGE_TAG: latest
