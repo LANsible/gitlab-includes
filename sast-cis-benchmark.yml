@@ -7,7 +7,7 @@ sast_cis_benchmark:
   allow_failure: true
   # Set run command default to empty, can be used for /bin/sleep 10
   variables:
-    DOCKER_RUN_COMMAND: docker run -d --rm ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
+    DOCKER_RUN_COMMAND: docker run -d --rm ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
   # Pull the image and only check against container_images
   script:
     - eval ${DOCKER_RUN_COMMAND}
