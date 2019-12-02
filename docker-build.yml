@@ -25,15 +25,13 @@
         buildx build
         --platform ${DOCKER_BUILD_PLATFORMS}
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
-        --push
-        .
+        --push .;
       else
         buildx build
         --platform ${DOCKER_BUILD_PLATFORMS}
         --build-args "${DOCKER_BUILD_ARGS}"
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
-        --push
-        .
+        --push .;
       fi
 
 # Build stage
