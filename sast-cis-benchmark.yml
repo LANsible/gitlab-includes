@@ -7,7 +7,7 @@ sast_cis_benchmark:
   allow_failure: true
   # Set run command default to empty, can be used for /bin/sleep 10
   variables:
-    DOCKER_RUN_COMMAND: docker run -d --rm ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
+    DOCKER_RUN_COMMAND: docker run -d --rm ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
   # Pull the image and only check against container_images
   script:
     - eval ${DOCKER_RUN_COMMAND}
@@ -18,13 +18,17 @@ sast_cis_benchmark:
         --pid host
         --userns host
         --cap-add audit_control
-        -v /var/lib:/var/lib
-        -v /var/run/docker.sock:/var/run/docker.sock
-        -v /usr/lib/systemd:/usr/lib/systemd
-        -v /etc:/etc
+        -v /etc:/etc:ro
+        -v /usr/bin/docker-containerd:/usr/bin/docker-containerd:ro
+        -v /usr/bin/docker-runc:/usr/bin/docker-runc:ro
+        -v /usr/lib/systemd:/usr/lib/systemd:ro
+        -v /var/lib:/var/lib:ro
+        -v /var/run/docker.sock:/var/run/docker.sock:ro
         --label docker_bench_security
         docker/docker-bench-security
-        -c container_images);
+          -b
+          -c container_images
+          -e check_4_6);
       echo "${benchmark_output}";
       echo "${benchmark_output}" | sed -r "s/\x1B\[[0-9;]*[JKmsu]//g" > sast-cis-benchmark.txt;
       if echo "${benchmark_output}" | grep -q "\[WARN\]"; then exit 1; fi
