@@ -11,7 +11,7 @@
 
     # Default push to internal Gitlab registry
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
 
   script:
     # Setup buildx
