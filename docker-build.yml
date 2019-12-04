@@ -38,6 +38,9 @@
 build:
   extends: .build
   stage: build
+  variables:
+    # Only build amd64 for the test stages
+    DOCKER_BUILD_PLATFORMS: linux/amd64
 
 # Publish branch image
 publish_branch:
