@@ -7,11 +7,16 @@ sast_cis_benchmark:
   allow_failure: true
   # Set run command default to empty, can be used for /bin/sleep 10
   variables:
-    DOCKER_RUN_COMMAND: docker run -d --rm ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
+    DOCKER_RUN_COMMAND: docker run -d --rm --name test ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
   # Pull the image and only check against container_images
   script:
     - eval ${DOCKER_RUN_COMMAND}
-    # Run CIS benchmark, send output to console and artifact
+    # Run CIS benchmark
+      # -b no colored output
+      # -c just run container_images scans
+      # -e exclude check_4_5(docker trust) and check_4_6(healthcheck)
+      # -i just run on the started image
+    # send output to console and artifact
     # Exit with status code 1 if "[WARN] was found in output
     - benchmark_output=$(docker run
         --net host
@@ -28,7 +33,8 @@ sast_cis_benchmark:
         docker/docker-bench-security
           -b
           -c container_images
-          -e check_4_6);
+          -e check_4_5,check_4_6
+          -i test);
       echo "${benchmark_output}";
       echo "${benchmark_output}" | sed -r "s/\x1B\[[0-9;]*[JKmsu]//g" > sast-cis-benchmark.txt;
       if echo "${benchmark_output}" | grep -q "\[WARN\]"; then exit 1; fi
