@@ -14,7 +14,10 @@
 
   script:
     - docker run --rm --privileged hypriot/qemu-register
-    - docker buildx create --use
+    # Please use `docker context create <context-name>` to create a context for current environment
+    - docker context create context-file
+    # then create a builder instance with `docker buildx create <context-name>`
+    - docker buildx create --use context-file
 
     # Build and push container
     - if [ -z "$DOCKER_BUILD_ARGS" ]; then
