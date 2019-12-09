@@ -23,11 +23,13 @@
     # Build and push container
     - if [ -z "$DOCKER_BUILD_ARGS" ]; then
         docker buildx build
+        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
         --platform ${DOCKER_BUILD_PLATFORMS}
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
         --push .;
       else
         docker buildx build
+        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
         --platform ${DOCKER_BUILD_PLATFORMS}
         --build-args "${DOCKER_BUILD_ARGS}"
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
