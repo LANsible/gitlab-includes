@@ -2,8 +2,11 @@
 .build:
   tags:
     - docker
-  image: lansible/docker-dind-buildx
+  # image: lansible/docker-dind-buildx
   variables:
+    # Enable experimental for buildx support
+    DOCKER_CLI_EXPERIMENTAL: enabled
+
     # To make it possible to pass args from a downstream include
     DOCKER_BUILD_ARGS: ""
     DOCKER_BUILD_PLATFORMS: linux/arm64/v8,linux/amd64,linux/arm/v6,linux/arm/v7,linux/386
