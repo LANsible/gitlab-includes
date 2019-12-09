@@ -5,6 +5,10 @@
   variables:
     BUILDX_VERSION: 0.3.1
 
+    # Set variables to enable buildx plugin
+    DOCKER_CLI_EXPERIMENTAL: enabled
+    DOCKER_BUILDKIT: 1
+
     # To make it possible to pass args from a downstream include
     DOCKER_BUILD_ARGS: ""
     DOCKER_BUILD_PLATFORMS: linux/arm64/v8,linux/amd64,linux/arm/v6,linux/arm/v7,linux/386
@@ -15,19 +19,19 @@
 
   script:
     # Setup buildx
-    - wget -O /usr/local/bin/buildx https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64
-    - chmod a+x /usr/local/bin/buildx
+    # - wget -O /usr/local/bin/buildx https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64
+    # - chmod a+x /usr/local/bin/buildx
     - docker run --rm --privileged hypriot/qemu-register
-    - buildx create --use
+    - docker buildx create --use
 
     # Build and push container
     - if [ -z "$DOCKER_BUILD_ARGS" ]; then
-        buildx build
+        docker buildx build
         --platform ${DOCKER_BUILD_PLATFORMS}
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
         --push .;
       else
-        buildx build
+        docker buildx build
         --platform ${DOCKER_BUILD_PLATFORMS}
         --build-args "${DOCKER_BUILD_ARGS}"
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
