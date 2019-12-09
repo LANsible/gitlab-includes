@@ -19,8 +19,8 @@
 
   script:
     # Setup buildx
-    # - wget -O /usr/local/bin/buildx https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64
-    # - chmod a+x /usr/local/bin/buildx
+    - docker build --platform=local -o . git://github.com/docker/buildx
+    - mv buildx ~/.docker/cli-plugins/docker-buildx
     - docker run --rm --privileged hypriot/qemu-register
     - docker buildx create --use
 
