@@ -14,16 +14,16 @@
 
   script:
     - docker run --rm --privileged hypriot/qemu-register
-    - buildx create --use
+    - docker buildx create --use
 
     # Build and push container
     - if [ -z "$DOCKER_BUILD_ARGS" ]; then
-        buildx build
+        docker buildx build
         --platform ${DOCKER_BUILD_PLATFORMS}
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
         --push .;
       else
-        buildx build
+        docker buildx build
         --platform ${DOCKER_BUILD_PLATFORMS}
         --build-args "${DOCKER_BUILD_ARGS}"
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
