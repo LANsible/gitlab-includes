@@ -2,6 +2,7 @@
 .build:
   tags:
     - docker
+    - local
   image: lansible/docker-dind-buildx
   variables:
     # To make it possible to pass args from a downstream include
