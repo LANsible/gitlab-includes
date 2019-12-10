@@ -1,6 +1,5 @@
 ---
 include:
-  - remote: https://raw.githubusercontent.com/LANsible/gitlab-includes/master/docker-login.yml
   - remote: https://raw.githubusercontent.com/LANsible/gitlab-includes/master/_docker-extend.yml
 
 # Publish branch image
