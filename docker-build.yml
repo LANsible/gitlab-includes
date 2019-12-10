@@ -1,6 +1,40 @@
 ---
-include:
-  - remote: https://raw.githubusercontent.com/LANsible/gitlab-includes/master/_docker-extend.yml
+.build:
+  tags:
+    - docker
+    - local
+  image: lansible/docker-dind-buildx
+  variables:
+    # To make it possible to pass args from a downstream include
+    DOCKER_BUILD_ARGS: ""
+    DOCKER_BUILD_PLATFORMS: linux/arm64/v8,linux/amd64,linux/arm/v6,linux/arm/v7,linux/386
+
+    # Default push to internal Gitlab registry
+    DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
+
+  script:
+    - docker run --rm --privileged hypriot/qemu-register
+    # Please use `docker context create <context-name>` to create a context for current environment
+    - docker context create context-file
+    # then create a builder instance with `docker buildx create <context-name>`
+    - docker buildx create --use context-file
+
+    # Build and push container
+    - if [ -z "$DOCKER_BUILD_ARGS" ]; then
+        docker buildx build
+        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
+        --platform ${DOCKER_BUILD_PLATFORMS}
+        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+        --push .;
+      else
+        docker buildx build
+        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
+        --platform ${DOCKER_BUILD_PLATFORMS}
+        --build-args "${DOCKER_BUILD_ARGS}"
+        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+        --push .;
+      fi
 
 # Build stage
 build:
@@ -9,3 +43,34 @@ build:
   variables:
     # Only build amd64 for the test stages
     DOCKER_BUILD_PLATFORMS: linux/amd64
+
+# Publish branch image
+publish_branch:
+  extends: .build
+  stage: publish
+  only:
+    - branches
+  variables:
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+
+# Publish tagged release
+publish_tag:
+  extends: .build
+  stage: publish
+  only:
+    - tags
+  except:
+    - branches
+  variables:
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
+
+# Publish tagged release
+publish_latest:
+  extends: .build
+  stage: publish
+  only:
+    - tags
+  except:
+    - branches
+  variables:
+    DOCKER_IMAGE_TAG: latest
