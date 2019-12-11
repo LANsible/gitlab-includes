@@ -1,5 +1,6 @@
 # Run CIS benchmarks against the images/containers
 sast_cis_benchmark:
+  image: docker:19.03-dind
   stage: test
   tags:
     - docker
