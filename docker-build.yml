@@ -7,7 +7,7 @@
   variables:
     # To make it possible to pass args from a downstream include
     DOCKER_BUILD_ARGS: ""
-    DOCKER_BUILD_PLATFORMS: linux/arm64/v8,linux/amd64,linux/arm/v6,linux/arm/v7,linux/386
+    DOCKER_BUILD_PLATFORMS: linux/arm64/v8,linux/amd64,linux/arm/v7
 
     # Default push to internal Gitlab registry
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
