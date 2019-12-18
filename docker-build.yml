@@ -1,4 +1,8 @@
 ---
+variables:
+  # You should overide this variable in the subsequent gitlab-ci file
+  DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
+
 .build:
   tags:
     - docker
@@ -9,10 +13,6 @@
     DOCKER_BUILD_ARGS: ""
     # Default just build amd64
     DOCKER_BUILD_PLATFORMS: linux/amd64
-
-    # Default push to internal Gitlab registry
-    DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
 
   script:
     - docker run --rm --privileged hypriot/qemu-register
@@ -41,7 +41,9 @@
 build:
   extends: .build
   stage: build
-
+  variables:
+    DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
 
 # Publish branch image
 .publish_branch:
