@@ -66,9 +66,9 @@ publish_branch_arm64v8:
 
 publish_branch_armv7:
   extends: .publish_branch
+  allow_failure: true
   variables:
     DOCKER_BUILD_PLATFORMS: linux/arm/v7
-
 
 # Publish tagged release
 .publish_tag:
@@ -93,6 +93,7 @@ publish_tag_arm64v8:
 
 publish_tag_armv7:
   extends: .publish_tag
+  allow_failure: true
   variables:
     DOCKER_BUILD_PLATFORMS: linux/arm/v7
 
@@ -120,5 +121,6 @@ publish_latest_arm64v8:
 
 publish_latest_armv7:
   extends: .publish_latest
+  allow_failure: true
   variables:
     DOCKER_BUILD_PLATFORMS: linux/arm/v7
