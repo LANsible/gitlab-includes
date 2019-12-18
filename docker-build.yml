@@ -7,7 +7,8 @@
   variables:
     # To make it possible to pass args from a downstream include
     DOCKER_BUILD_ARGS: ""
-    DOCKER_BUILD_PLATFORMS: linux/arm64/v8,linux/amd64,linux/arm/v7
+    # Default just build amd64
+    DOCKER_BUILD_PLATFORMS: linux/amd64
 
     # Default push to internal Gitlab registry
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
@@ -40,12 +41,10 @@
 build:
   extends: .build
   stage: build
-  variables:
-    # Only build amd64 for the test stages
-    DOCKER_BUILD_PLATFORMS: linux/amd64
+
 
 # Publish branch image
-publish_branch:
+.publish_branch:
   extends: .build
   stage: publish
   only:
@@ -53,8 +52,24 @@ publish_branch:
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
 
+publish_branch_amd64:
+  extends: .publish_branch
+  variables:
+    DOCKER_BUILD_PLATFORMS: linux/amd64
+
+publish_branch_arm64v8:
+  extends: .publish_branch
+  variables:
+    DOCKER_BUILD_PLATFORMS: linux/arm64/v8
+
+publish_branch_armv7:
+  extends: .publish_branch
+  variables:
+    DOCKER_BUILD_PLATFORMS: linux/arm/v7
+
+
 # Publish tagged release
-publish_tag:
+.publish_tag:
   extends: .build
   stage: publish
   only:
@@ -64,8 +79,24 @@ publish_tag:
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
 
-# Publish tagged release
-publish_latest:
+publish_branch_amd64:
+  extends: .publish_tag
+  variables:
+    DOCKER_BUILD_PLATFORMS: linux/amd64
+
+publish_branch_arm64v8:
+  extends: .publish_tag
+  variables:
+    DOCKER_BUILD_PLATFORMS: linux/arm64/v8
+
+publish_branch_armv7:
+  extends: .publish_tag
+  variables:
+    DOCKER_BUILD_PLATFORMS: linux/arm/v7
+
+
+# Publish latest release
+.publish_latest:
   extends: .build
   stage: publish
   only:
@@ -74,3 +105,18 @@ publish_latest:
     - branches
   variables:
     DOCKER_IMAGE_TAG: latest
+
+publish_branch_amd64:
+  extends: .publish_latest
+  variables:
+    DOCKER_BUILD_PLATFORMS: linux/amd64
+
+publish_branch_arm64v8:
+  extends: .publish_latest
+  variables:
+    DOCKER_BUILD_PLATFORMS: linux/arm64/v8
+
+publish_branch_armv7:
+  extends: .publish_latest
+  variables:
+    DOCKER_BUILD_PLATFORMS: linux/arm/v7
