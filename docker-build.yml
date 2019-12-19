@@ -1,30 +1,22 @@
 ---
 variables:
   # You should overide this variable in the subsequent gitlab-ci file
-  DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
+  DOCKER_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}"
+
 
 .build:
   tags:
     - docker
-  image: lansible/docker-dind-buildx
+  image: docker:19
   variables:
     # To make it possible to pass args from a downstream include
     DOCKER_BUILD_ARGS: ""
-    # Default just build amd64
-    DOCKER_BUILD_PLATFORMS: linux/amd64
 
   script:
-    - docker run --rm --privileged hypriot/qemu-register
-    # Please use `docker context create <context-name>` to create a context for current environment
-    - docker context create context-file
-    # then create a builder instance with `docker buildx create <context-name>`
-    - docker buildx create --use context-file
-
     # Build and push container
     - if [ -z "$DOCKER_BUILD_ARGS" ]; then
-        docker buildx build
+        docker build
         --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
-        --platform ${DOCKER_BUILD_PLATFORMS}
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
         --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
         --label "org.label-schema.name='${CI_PROJECT_TITLE}'"
@@ -36,9 +28,8 @@ variables:
         --label "org.label-schema.schema-version='1.0'"
         --push .;
       else
-        docker buildx build
+        docker build
         --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
-        --platform ${DOCKER_BUILD_PLATFORMS}
         --build-args "${DOCKER_BUILD_ARGS}"
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
         --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
@@ -52,6 +43,17 @@ variables:
         --push .;
       fi
 
+.manifest:
+  tags:
+    - docker
+  image: docker:19
+  script:
+    - docker manifest create ${DOCKER_IMAGE_NAME}:${DOCKER_MANIFEST_TAG}
+        --amend ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-amd64
+        --amend ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-arm64v8
+    - docker manifest push ${DOCKER_IMAGE_NAME}:${DOCKER_MANIFEST_TAG}
+
+
 # Build stage
 build:
   extends: .build
@@ -60,19 +62,18 @@ build:
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
 
+
 # Publish branch image
 .publish_branch:
   extends: .build
   stage: publish
   only:
     - branches
-  variables:
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
 
 publish_branch_amd64:
   extends: .publish_branch
   variables:
-    DOCKER_BUILD_PLATFORMS: linux/amd64
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-amd64
 
 publish_branch_arm64v8:
   extends: .publish_branch
@@ -80,13 +81,20 @@ publish_branch_arm64v8:
     - docker
     - arm64v8
   variables:
-    DOCKER_BUILD_PLATFORMS: linux/arm64/v8
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-arm64v8
 
-publish_branch_armv7:
-  extends: .publish_branch
-  allow_failure: true
+publish_branch_manifest:
+  extends: .manifest
+  stage: publish
+  only:
+    - branches
   variables:
-    DOCKER_BUILD_PLATFORMS: linux/arm/v7
+    DOCKER_MANIFEST_TAG: ${CI_COMMIT_REF_SLUG}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+  dependencies:
+    - publish_branch_amd64
+    - publish_branch_arm64v8
+
 
 # Publish tagged release
 .publish_tag:
@@ -96,13 +104,11 @@ publish_branch_armv7:
     - tags
   except:
     - branches
-  variables:
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
 
 publish_tag_amd64:
   extends: .publish_tag
   variables:
-    DOCKER_BUILD_PLATFORMS: linux/amd64
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}-amd64
 
 publish_tag_arm64v8:
   extends: .publish_tag
@@ -110,41 +116,27 @@ publish_tag_arm64v8:
     - docker
     - arm64v8
   variables:
-    DOCKER_BUILD_PLATFORMS: linux/arm64/v8
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}-arm64v8
 
-publish_tag_armv7:
-  extends: .publish_tag
-  allow_failure: true
-  variables:
-    DOCKER_BUILD_PLATFORMS: linux/arm/v7
-
-
-# Publish latest release
-.publish_latest:
-  extends: .build
+.publish_manifest:
+  extends: .manifest
   stage: publish
   only:
     - tags
   except:
     - branches
-  variables:
-    DOCKER_IMAGE_TAG: latest
+  dependencies:
+    - publish_tag_amd64
+    - publish_tag_arm64v8
 
-publish_latest_amd64:
-  extends: .publish_latest
+publish_tag_manifest:
+  extends: .publish_manifest
   variables:
-    DOCKER_BUILD_PLATFORMS: linux/amd64
+    DOCKER_MANIFEST_TAG: ${CI_COMMIT_TAG}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
 
-publish_latest_arm64v8:
-  extends: .publish_latest
-  tags:
-    - docker
-    - arm64v8
+publish_tag_manifest:
+  extends: .publish_manifest
   variables:
-    DOCKER_BUILD_PLATFORMS: linux/arm64/v8
-
-publish_latest_armv7:
-  extends: .publish_latest
-  allow_failure: true
-  variables:
-    DOCKER_BUILD_PLATFORMS: linux/arm/v7
+    DOCKER_MANIFEST_TAG: latest
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
