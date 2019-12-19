@@ -6,7 +6,6 @@ variables:
 .build:
   tags:
     - docker
-    - local
   image: lansible/docker-dind-buildx
   variables:
     # To make it possible to pass args from a downstream include
@@ -77,6 +76,9 @@ publish_branch_amd64:
 
 publish_branch_arm64v8:
   extends: .publish_branch
+  tags:
+    - docker
+    - arm64v8
   variables:
     DOCKER_BUILD_PLATFORMS: linux/arm64/v8
 
@@ -104,6 +106,9 @@ publish_tag_amd64:
 
 publish_tag_arm64v8:
   extends: .publish_tag
+  tags:
+    - docker
+    - arm64v8
   variables:
     DOCKER_BUILD_PLATFORMS: linux/arm64/v8
 
@@ -132,6 +137,9 @@ publish_latest_amd64:
 
 publish_latest_arm64v8:
   extends: .publish_latest
+  tags:
+    - docker
+    - arm64v8
   variables:
     DOCKER_BUILD_PLATFORMS: linux/arm64/v8
 
