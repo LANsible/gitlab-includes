@@ -83,17 +83,16 @@ publish_branch_arm64v8:
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-arm64v8
 
+
+# Setup manifests
 publish_branch_manifest:
   extends: .manifest
-  stage: publish
+  stage: manifest
   only:
     - branches
   variables:
     DOCKER_MANIFEST_TAG: ${CI_COMMIT_REF_SLUG}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
-  dependencies:
-    - publish_branch_amd64
-    - publish_branch_arm64v8
 
 
 # Publish tagged release
@@ -118,16 +117,15 @@ publish_tag_arm64v8:
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}-arm64v8
 
+
+# Setup manifests
 .publish_manifest:
   extends: .manifest
-  stage: publish
+  stage: manifest
   only:
     - tags
   except:
     - branches
-  dependencies:
-    - publish_tag_amd64
-    - publish_tag_arm64v8
 
 publish_tag_manifest:
   extends: .publish_manifest
