@@ -27,6 +27,14 @@ variables:
         --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
         --platform ${DOCKER_BUILD_PLATFORMS}
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+        --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+        --label "org.label-schema.name='${CI_PROJECT_TITLE}'"
+        --label "org.label-schema.url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
+        --label "org.label-schema.vcs-ref='${CI_COMMIT_SHA}'"
+        --label "org.label-schema.vcs-url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
+        --label "org.label-schema.vendor=LANsible"
+        --label "org.label-schema.version='${CI_COMMIT_REF_SLUG}'"
+        --label "org.label-schema.schema-version='1.0'"
         --push .;
       else
         docker buildx build
@@ -34,6 +42,14 @@ variables:
         --platform ${DOCKER_BUILD_PLATFORMS}
         --build-args "${DOCKER_BUILD_ARGS}"
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+        --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+        --label "org.label-schema.name='${CI_PROJECT_TITLE}'"
+        --label "org.label-schema.url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
+        --label "org.label-schema.vcs-ref='${CI_COMMIT_SHA}'"
+        --label "org.label-schema.vcs-url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
+        --label "org.label-schema.vendor=LANsible"
+        --label "org.label-schema.version='${CI_COMMIT_REF_SLUG}'"
+        --label "org.label-schema.schema-version='1.0'"
         --push .;
       fi
 
