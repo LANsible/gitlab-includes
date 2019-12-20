@@ -15,4 +15,4 @@ before_script:
           \"password\":\"$DOCKER_HUB_PASSWORD\"
         }
       }
-    }" | tee /kaniko/.docker/config.json ~/.docker/config.json
+    }" | tee /kaniko/.docker/config.json ${HOME}/.docker/config.json
