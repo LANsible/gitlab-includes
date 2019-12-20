@@ -33,7 +33,6 @@ variables:
         --reproducible
         --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}";
       fi
-    - docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
 
 .manifest:
   image: docker:19
