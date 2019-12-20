@@ -20,7 +20,7 @@ variables:
         --context "${CI_PROJECT_DIR}"
         --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
         --cache=true
-        --cache-repo "${CI_REGISTRY_IMAGE}"
+        --cache-repo "${CI_REGISTRY_IMAGE}/cache"
         --reproducible
         --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}";
       else
@@ -29,7 +29,7 @@ variables:
         --context "${CI_PROJECT_DIR}"
         --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
         --cache=true
-        --cache-repo "${CI_REGISTRY_IMAGE}"
+        --cache-repo "${CI_REGISTRY_IMAGE}/cache"
         --reproducible
         --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}";
       fi
