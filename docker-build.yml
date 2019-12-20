@@ -18,7 +18,8 @@ variables:
     - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
     # Build and push container
     - /kaniko/executor
-        --build-arg "${DOCKER_BUILD_ARGS} ARCHITECTURE=${ARCHITECTURE}"
+        --build-arg "${DOCKER_BUILD_ARGS}"
+        --build-arg "ARCHITECTURE=${ARCHITECTURE}"
         --context "${CI_PROJECT_DIR}"
         --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
         --cache=true
