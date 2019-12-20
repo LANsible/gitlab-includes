@@ -7,4 +7,4 @@ before_script:
     echo "{\"auths\":
       {\"$CI_REGISTRY\": {\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}},
       {\"https://index.docker.io/v1/\": {\"username\":\"$DOCKER_HUB_USER\",\"password\":\"$DOCKER_HUB_PASSWORD\"}}
-    }" | tee -a /kaniko/.docker/config.json ~/.docker/config.json
+    }" | tee /kaniko/.docker/config.json ~/.docker/config.json

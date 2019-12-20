@@ -14,9 +14,6 @@ variables:
     DOCKER_BUILD_ARGS: ""
 
   script:
-    # Pull build stage image to use as cache
-    # Might not exist so use || true
-    - docker pull ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA} || true
     # Build and push container
     - if [ -z "$DOCKER_BUILD_ARGS" ]; then
         /kaniko/executor
