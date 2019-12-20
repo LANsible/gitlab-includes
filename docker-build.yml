@@ -52,9 +52,6 @@ variables:
 build:
   extends: .build
   stage: build
-  tags:
-    - docker
-    - amd64
   variables:
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
@@ -69,20 +66,14 @@ build:
 
 push_branch_amd64:
   extends: .push_branch
-  tags:
-    - docker
-    - amd64
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-amd64
 
 push_branch_arm64v8:
   extends: .push_branch
-  tags:
-    - docker
-    - arm64v8
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-arm64v8
-
+    DOCKER_BUILD_ARGS: "ARCHITECTURE=aarch64"
 
 # Setup manifests
 manifest_branch:
@@ -106,19 +97,14 @@ manifest_branch:
 
 push_tag_amd64:
   extends: .push_tag
-  tags:
-    - docker
-    - amd64
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}-amd64
 
 push_tag_arm64v8:
   extends: .push_tag
-  tags:
-    - docker
-    - arm64v8
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}-arm64v8
+    DOCKER_BUILD_ARGS: "ARCHITECTURE=aarch64"
 
 
 # Setup manifests
