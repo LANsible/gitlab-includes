@@ -28,12 +28,12 @@ variables:
         --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}"
 
 .manifest:
-  image: docker:19
+  image: lansible/manifest-tool:master
   tags:
     - docker
   script:
     # Push manifest
-    - docker run lansible/manifest-tool:master push from-args
+    - manifest-tool push from-args
         --platforms linux/amd64,linux/arm64
         --template "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-ARCH"
         --target "${DOCKER_IMAGE_NAME}:${DOCKER_MANIFEST_TAG}"
