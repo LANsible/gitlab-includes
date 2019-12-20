@@ -14,42 +14,32 @@ variables:
     DOCKER_BUILD_ARGS: ""
 
   script:
+    # Get last part of job name as architecture
+    - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
     # Build and push container
-    - if [ -z "$DOCKER_BUILD_ARGS" ]; then
-        /kaniko/executor
+    - /kaniko/executor
+        --build-arg "${DOCKER_BUILD_ARGS} ARCHITECTURE=${ARCHITECTURE}"
         --context "${CI_PROJECT_DIR}"
         --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
         --cache=true
         --cache-repo "${CI_REGISTRY_IMAGE}/cache"
         --reproducible
-        --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}";
-      else
-        /kaniko/executor
-        --build-arg "${DOCKER_BUILD_ARGS}"
-        --context "${CI_PROJECT_DIR}"
-        --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-        --cache=true
-        --cache-repo "${CI_REGISTRY_IMAGE}/cache"
-        --reproducible
-        --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}";
-      fi
+        --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
 
 .manifest:
   image: docker:19
   tags:
     - docker
   script:
-    # Enable experimental CLI for manifest command
-    - export DOCKER_CLI_EXPERIMENTAL=enabled
-    # Create and push manifest
-    - docker manifest create ${DOCKER_IMAGE_NAME}:${DOCKER_MANIFEST_TAG}
-        --amend ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-amd64
-        --amend ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-arm64v8
-    - docker manifest push ${DOCKER_IMAGE_NAME}:${DOCKER_MANIFEST_TAG}
+    # Push manifest
+    - docker run lansibl/manifest-tool:master push from-args
+        --platforms linux/amd64,linux/arm64
+        --template "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-ARCH"
+        --target "${DOCKER_IMAGE_NAME}:${DOCKER_MANIFEST_TAG}"
 
 
 # Build stage
-build:
+build_amd64:
   extends: .build
   stage: build
   variables:
@@ -61,19 +51,17 @@ build:
 .push_branch:
   extends: .build
   stage: push
+  variables:
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
   only:
     - branches
 
 push_branch_amd64:
   extends: .push_branch
-  variables:
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-amd64
 
-push_branch_arm64v8:
+push_branch_arm64:
   extends: .push_branch
-  variables:
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-arm64v8
-    DOCKER_BUILD_ARGS: "ARCHITECTURE=aarch64"
+
 
 # Setup manifests
 manifest_branch:
@@ -90,6 +78,8 @@ manifest_branch:
 .push_tag:
   extends: .build
   stage: push
+  variables:
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
   only:
     - tags
   except:
@@ -97,14 +87,9 @@ manifest_branch:
 
 push_tag_amd64:
   extends: .push_tag
-  variables:
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}-amd64
 
-push_tag_arm64v8:
+push_tag_arm64:
   extends: .push_tag
-  variables:
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}-arm64v8
-    DOCKER_BUILD_ARGS: "ARCHITECTURE=aarch64"
 
 
 # Setup manifests
