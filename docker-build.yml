@@ -25,7 +25,7 @@ variables:
         --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}";
       else
         /kaniko/executor
-        --build-args "${DOCKER_BUILD_ARGS}"
+        --build-arg "${DOCKER_BUILD_ARGS}"
         --context "${CI_PROJECT_DIR}"
         --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
         --cache=true
