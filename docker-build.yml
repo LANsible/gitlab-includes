@@ -3,7 +3,6 @@ variables:
   # You should overide this variable in the subsequent gitlab-ci file
   DOCKER_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}"
 
-
 .build:
   image: docker:19
   variables:
@@ -50,6 +49,9 @@ variables:
   tags:
     - docker
   script:
+    # Enable experimental CLI for manifest command
+    - export DOCKER_CLI_EXPERIMENTAL=enabled
+    # Create and push manifest
     - docker manifest create ${DOCKER_IMAGE_NAME}:${DOCKER_MANIFEST_TAG}
         --amend ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-amd64
         --amend ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-arm64v8
