@@ -4,7 +4,11 @@ variables:
   DOCKER_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}"
 
 .build:
-  image: docker:19
+  tags:
+    - docker
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   variables:
     # To make it possible to pass args from a downstream include
     DOCKER_BUILD_ARGS: ""
@@ -15,32 +19,22 @@ variables:
     - docker pull ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA} || true
     # Build and push container
     - if [ -z "$DOCKER_BUILD_ARGS" ]; then
-        docker build
-        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
-        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
-        --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-        --label "org.label-schema.name='${CI_PROJECT_TITLE}'"
-        --label "org.label-schema.url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
-        --label "org.label-schema.vcs-ref='${CI_COMMIT_SHA}'"
-        --label "org.label-schema.vcs-url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
-        --label "org.label-schema.vendor=LANsible"
-        --label "org.label-schema.version='${CI_COMMIT_REF_SLUG}'"
-        --label "org.label-schema.schema-version='1.0'"
-        .;
+        /kaniko/executor
+        --context "${CI_PROJECT_DIR}"
+        --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+        --cache=true
+        --cache-repo "${CI_REGISTRY_IMAGE}"
+        --reproducible
+        --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}";
       else
-        docker build
-        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
+        /kaniko/executor
         --build-args "${DOCKER_BUILD_ARGS}"
-        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
-        --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-        --label "org.label-schema.name='${CI_PROJECT_TITLE}'"
-        --label "org.label-schema.url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
-        --label "org.label-schema.vcs-ref='${CI_COMMIT_SHA}'"
-        --label "org.label-schema.vcs-url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
-        --label "org.label-schema.vendor=LANsible"
-        --label "org.label-schema.version='${CI_COMMIT_REF_SLUG}'"
-        --label "org.label-schema.schema-version='1.0'"
-        .;
+        --context "${CI_PROJECT_DIR}"
+        --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+        --cache=true
+        --cache-repo "${CI_REGISTRY_IMAGE}"
+        --reproducible
+        --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}";
       fi
     - docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
 
