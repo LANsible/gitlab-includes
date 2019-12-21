@@ -31,6 +31,8 @@ variables:
   image: lansible/manifest-tool:master
   tags:
     - docker
+  services:
+    - docker:19.03-dind
   script:
     # Pull images to be able to create a manifest
     - for arch in amd64 arm64 arm; do
