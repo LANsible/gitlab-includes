@@ -32,6 +32,10 @@ variables:
   tags:
     - docker
   script:
+    # Pull images to be able to create a manifest
+    - for arch in linux/amd64 linux/arm64 linux/arm; do
+        docker pull "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${arch}" || true
+      done
     # Push manifest
     - manifest-tool 
         --docker-cfg /kaniko/.docker/config.json
