@@ -31,16 +31,11 @@ variables:
   image: lansible/manifest-tool:master
   tags:
     - docker
-  services:
-    - docker:19.03-dind
   script:
-    # Pull images to be able to create a manifest
-    - for arch in amd64 arm64 arm; do
-        docker pull "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${arch}" || true;
-      done
     # Push manifest
-    - manifest-tool 
-        --docker-cfg /kaniko/.docker/config.json
+    - manifest-tool
+        --username "$DOCKER_HUB_USER"
+        --password "$DOCKER_HUB_PASSWORD"
       push from-args
         --ignore-missing
         --platforms linux/amd64,linux/arm64,linux/arm
