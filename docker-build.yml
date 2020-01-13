@@ -5,6 +5,7 @@ variables:
 
 .build:
   tags:
+    - local  # do not run on shared runner
     - docker
   image:
     name: gcr.io/kaniko-project/executor:debug
