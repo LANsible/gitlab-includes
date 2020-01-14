@@ -22,7 +22,6 @@ variables:
     - docker build
         --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
         --build-arg "ARCHITECTURE=${ARCHITECTURE}"
-        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
         --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
         --label "org.label-schema.name='${CI_PROJECT_TITLE}'"
         --label "org.label-schema.url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
@@ -31,6 +30,7 @@ variables:
         --label "org.label-schema.vendor=LANsible"
         --label "org.label-schema.version='${CI_COMMIT_REF_SLUG}'"
         --label "org.label-schema.schema-version='1.0'"
+        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
         .
     - docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
 
