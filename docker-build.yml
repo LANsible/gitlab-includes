@@ -11,16 +11,19 @@ variables:
   services:
     - docker:19-dind
   script:
+    # Register needed qemu binaries
+    - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
     # Pull build stage image to use as cache
     # Might not exist so use || true
-    - docker pull ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA} || true
+    - docker pull ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}-${ARCHITECTURE} || true
 
     # Get last part of job name as architecture
     - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
 
     # Build and push container
     - docker build
-        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}
+        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}-${ARCHITECTURE}
         --build-arg "ARCHITECTURE=${ARCHITECTURE}"
         --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
         --label "org.label-schema.name='${CI_PROJECT_TITLE}'"
