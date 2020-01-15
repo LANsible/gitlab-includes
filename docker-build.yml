@@ -4,12 +4,9 @@ variables:
   DOCKER_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}"
 
 .build:
-  image: docker:19
   tags:
     - local  # do not run on shared runner
     - docker
-  services:
-    - docker:19-dind
   script:
     # Register needed qemu binaries
     - docker run --rm --privileged multiarch/qemu-user-static:register --reset

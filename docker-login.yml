@@ -1,6 +1,10 @@
 ---
-before_script:
-  # Authenticate to project registry
-  - echo "${CI_REGISTRY_PASSWORD}" | docker login -u "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"
-  # Authenticate to Docker Hub repository
-  - echo "${DOCKER_HUB_PASSWORD}" | docker login -u "${DOCKER_HUB_USER}" --password-stdin
+default:
+  image: docker:19.03
+  services:
+    - docker:19.03-dind
+  before_script:
+    # Authenticate to project registry
+    - echo "${CI_REGISTRY_PASSWORD}" | docker login -u "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"
+    # Authenticate to Docker Hub repository
+    - echo "${DOCKER_HUB_PASSWORD}" | docker login -u "${DOCKER_HUB_USER}" --password-stdin
