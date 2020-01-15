@@ -40,10 +40,7 @@ variables:
     - docker
   script:
     # Push manifest
-    - manifest-tool
-        --username "$DOCKER_HUB_USER"
-        --password "$DOCKER_HUB_PASSWORD"
-      push from-args
+    - manifest-tool push from-args
         --ignore-missing
         --platforms linux/amd64,linux/arm64,linux/arm
         --template "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-ARCH"

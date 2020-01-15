@@ -1,18 +1,6 @@
 ---
 before_script:
-  # Authenticate to project registry and Docker Hub repository
-  # Does not use docker login for kaniko compatibilty
-  - mkdir -p /kaniko/.docker ~/.docker
-  - >
-    echo "{
-      \"auths\": {
-        \"$CI_REGISTRY\": {
-          \"username\": \"$CI_REGISTRY_USER\",
-          \"password\": \"$CI_REGISTRY_PASSWORD\"
-        },
-        \"https://index.docker.io/v1/\": {
-          \"username\":\"$DOCKER_HUB_USER\",
-          \"password\":\"$DOCKER_HUB_PASSWORD\"
-        }
-      }
-    }" | tee /kaniko/.docker/config.json ${HOME}/.docker/config.json
+  # Authenticate to project registry
+  - echo "${CI_REGISTRY_PASSWORD}" | docker login -u "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"
+  # Authenticate to Docker Hub repository
+  - echo "${DOCKER_HUB_PASSWORD}" | docker login -u "${DOCKER_HUB_USER}" --password-stdin
