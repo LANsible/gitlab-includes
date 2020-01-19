@@ -7,26 +7,32 @@ variables:
   tags:
     - local  # do not run on shared runner
     - docker
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  variables:
-    # To make it possible to pass args from a downstream include
-    DOCKER_BUILD_ARGS: ""
-
   script:
+    # Register needed qemu binaries
+    - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
     # Get last part of job name as architecture
     - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
+
+    # Pull build stage image to use as cache
+    # Might not exist so use || true
+    - docker pull ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}-${ARCHITECTURE} || true
+
     # Build and push container
-    - /kaniko/executor
-        --build-arg "${DOCKER_BUILD_ARGS}"
+    - docker build
+        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}-${ARCHITECTURE}
         --build-arg "ARCHITECTURE=${ARCHITECTURE}"
-        --context "${CI_PROJECT_DIR}"
-        --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-        --cache=true
-        --cache-repo "${CI_REGISTRY_IMAGE}/cache"
-        --reproducible
-        --destination "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}"
+        --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+        --label "org.label-schema.name='${CI_PROJECT_TITLE}'"
+        --label "org.label-schema.url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
+        --label "org.label-schema.vcs-ref='${CI_COMMIT_SHA}'"
+        --label "org.label-schema.vcs-url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
+        --label "org.label-schema.vendor=LANsible"
+        --label "org.label-schema.version='${CI_COMMIT_REF_SLUG}'"
+        --label "org.label-schema.schema-version='1.0'"
+        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
+        .
+    - docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
 
 .manifest:
   image: lansible/manifest-tool:master
@@ -34,10 +40,7 @@ variables:
     - docker
   script:
     # Push manifest
-    - manifest-tool
-        --username "$DOCKER_HUB_USER"
-        --password "$DOCKER_HUB_PASSWORD"
-      push from-args
+    - manifest-tool push from-args
         --ignore-missing
         --platforms linux/amd64,linux/arm64,linux/arm
         --template "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-ARCH"
@@ -119,12 +122,12 @@ push_latest_manifest:
     DOCKER_MANIFEST_TAG: latest
     DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
 
-
 # Push readme to Docker Hub
 # https://www.sanisimov.com/2019/03/building-docker-images-for-multiple-architectures/
 push_readme:
   stage: manifest
   script:
+    - apk add --no-cache jq
     - >
       token=$(
         curl -s -X POST
@@ -141,6 +144,6 @@ push_readme:
           -H "Content-Type: application/json"
           -H "Authorization: JWT ${token}"
   only:
-  - tags
+    - tags
   except:
     - branches
