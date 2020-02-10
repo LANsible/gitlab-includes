@@ -19,6 +19,20 @@ variables:
     # Might not exist so use || true
     - docker pull ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}-${ARCHITECTURE} || true
 
+    # Show command to run
+    - echo docker build
+        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}-${ARCHITECTURE}
+        --build-arg "ARCHITECTURE=${ARCHITECTURE} ${BUILD_ARGS}"
+        --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+        --label "org.label-schema.name='${CI_PROJECT_TITLE}'"
+        --label "org.label-schema.url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
+        --label "org.label-schema.vcs-ref='${CI_COMMIT_SHA}'"
+        --label "org.label-schema.vcs-url='https://github.com/LANsible/${CI_PROJECT_NAME}'"
+        --label "org.label-schema.vendor=LANsible"
+        --label "org.label-schema.version='${CI_COMMIT_REF_SLUG}'"
+        --label "org.label-schema.schema-version='1.0'"
+        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
+
     # Build and push container
     - docker build
         --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}-${ARCHITECTURE}
