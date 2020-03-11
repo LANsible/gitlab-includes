@@ -4,6 +4,13 @@ variables:
   DOCKER_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}"
   BUILD_ARGS: ""
 
+stages:
+  - lint
+  - build
+  - test
+  - push
+  - manifest
+
 .build:
   tags:
     - local  # do not run on shared runner
@@ -145,21 +152,19 @@ push_readme:
   stage: manifest
   script:
     - apk add --no-cache jq
-    - >
-      token=$(
+    - 'token=$(
         curl -s -X POST
           -H "Content-Type: application/json"
           -d "{\"username\": \"$DOCKER_USERNAME\", \"password\": \"$DOCKER_PASSWORD\"}"
           https://hub.docker.com/v2/users/login/
         | jq -r .token
-      )
-    - >
-      jq -n --arg msg "$(<README.md)" '{"registry":"registry-1.docker.io","full_description": $msg }'
+      )'
+    - 'jq -n --arg msg "$(<README.md)" "{\"registry\":\"registry-1.docker.io\",\"full_description\": \"$msg\"}"
       | curl -s -o /dev/null -L -w "%{http_code}"
           https://cloud.docker.com/v2/repositories/"${image}"/
           -d @- -X PATCH
           -H "Content-Type: application/json"
-          -H "Authorization: JWT ${token}"
+          -H "Authorization: JWT ${token}"'
   only:
     - tags
   except:
