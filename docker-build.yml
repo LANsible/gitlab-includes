@@ -151,7 +151,7 @@ push_latest_manifest:
 push_readme:
   stage: manifest
   script:
-    - apk add --no-cache jq
+    - apk add --no-cache jq curl
     - 'token=$(
         curl -s -X POST
           -H "Content-Type: application/json"
