@@ -24,11 +24,11 @@ stages:
 
     # Pull build stage image to use as cache
     # Might not exist so use || true
-    - docker pull ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}-${ARCHITECTURE} || true
+    - docker pull ${CI_REGISTRY_IMAGE}/master:${CI_COMMIT_SHA}-${ARCHITECTURE} || true
 
     # Show command to run
     - echo docker build
-        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}-${ARCHITECTURE}
+        --cache-from ${CI_REGISTRY_IMAGE}/master:${CI_COMMIT_SHA}-${ARCHITECTURE}
         --build-arg "ARCHITECTURE=${ARCHITECTURE}"
         ${BUILD_ARGS}
         --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
