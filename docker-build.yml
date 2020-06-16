@@ -43,7 +43,7 @@ stages:
 
     # Build and push container
     - docker build
-        --cache-from ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHA}-${ARCHITECTURE}
+        --cache-from ${CI_REGISTRY_IMAGE}/master:${CI_COMMIT_SHA}-${ARCHITECTURE}
         --build-arg "ARCHITECTURE=${ARCHITECTURE}"
         ${BUILD_ARGS}
         --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
