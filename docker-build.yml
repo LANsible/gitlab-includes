@@ -1,7 +1,11 @@
 ---
 variables:
   # You should overide this variable in the subsequent gitlab-ci file
-  DOCKER_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}"
+  # Where to the branch and tagged images will be pushed
+  # DOCKER_IMAGE_NAME: lansible/ubuntu
+  DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
+  # build-args to add to the build
+  # BUILD_ARGS: --build-arg VERSION=2.9 --build-arg TEST=true
   BUILD_ARGS: ""
 
 stages:
@@ -15,6 +19,12 @@ stages:
   tags:
     - local  # do not run on shared runner
     - docker
+  variables:
+    DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
+  # no need to run for tags, image commit should be built already
+  except:
+    - tags  
   script:
     # Register needed qemu binaries
     - docker run --rm --privileged multiarch/qemu-user-static:register --reset
@@ -56,10 +66,33 @@ stages:
         --label "org.label-schema.schema-version='1.0'"
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
         .
+
     - docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
+
+.retag:
+  tags:
+    - docker
+  variables:
+    # Always use commit sha as source
+    SOURCE_DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
+    SOURCE_DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
+  script:
+    # Get last part of job name as architecture
+    - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
+    # Pull previous build image for retagging
+    - docker pull ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE}
+    # Retag source to target image
+    - echo "Tagging ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE} to
+        ${TARGET_DOCKER_IMAGE_NAME}:${TARGET_DOCKER_IMAGE_TAG}-${ARCHITECTURE}"
+    - docker tag 
+        ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE}
+        ${TARGET_DOCKER_IMAGE_NAME}:${TARGET_DOCKER_IMAGE_TAG}-${ARCHITECTURE}  
+
+    - docker push ${TARGET_DOCKER_IMAGE_NAME}:${TARGET_DOCKER_IMAGE_TAG}-${ARCHITECTURE}
 
 .manifest:
   image: lansible/manifest-tool:master
+  stage: manifest
   tags:
     - docker
   script:
@@ -75,64 +108,61 @@ stages:
 build_amd64:
   extends: .build
   stage: build
-  variables:
-    DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
 
+build_arm64:
+  extends: .build
+  stage: build
 
 # Push branch image
-.push_branch:
-  extends: .build
+.retag_branch:
+  extends: .retag
   stage: push
   variables:
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+    TARGET_DOCKER_IMAGE_NAME: ${DOCKER_IMAGE_NAME}
+    TARGET_DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
   only:
     - branches
 
-push_branch_amd64:
-  extends: .push_branch
+retag_branch_amd64:
+  extends: .retag_branch
 
-push_branch_arm64:
-  extends: .push_branch
+retag_branch_arm64:
+  extends: .retag_branch
 
-
-# Setup manifests
-manifest_branch:
+.manifest_branch:
   extends: .manifest
-  stage: manifest
-  only:
-    - branches
+
+push_branch_manifest:
+  extends: .manifest
   variables:
     DOCKER_MANIFEST_TAG: ${CI_COMMIT_REF_SLUG}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+  only:
+    - branches
 
 
 # Push tagged release
-.push_tag:
-  extends: .build
+.retag_tag:
+  extends: .retag
   stage: push
   variables:
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
+    TARGET_DOCKER_IMAGE_NAME: ${DOCKER_IMAGE_NAME}
+    TARGET_DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
   only:
     - tags
-  except:
-    - branches
 
 push_tag_amd64:
-  extends: .push_tag
+  extends: .retag_tag
 
 push_tag_arm64:
-  extends: .push_tag
+  extends: .retag_tag
 
 
 # Setup manifests
 .manifest_tag:
   extends: .manifest
-  stage: manifest
   only:
     - tags
-  except:
-    - branches
 
 push_tag_manifest:
   extends: .manifest_tag
@@ -161,11 +191,9 @@ push_readme:
       )'
     - 'jq -n --arg msg "$(<README.md)" "{\"registry\":\"registry-1.docker.io\",\"full_description\": \"$msg\"}"
       | curl -s -o /dev/null -L -w "%{http_code}"
-          https://cloud.docker.com/v2/repositories/"${image}"/
+          https://cloud.docker.com/v2/repositories/"${DOCKER_IMAGE_NAME}"/
           -d @- -X PATCH
           -H "Content-Type: application/json"
           -H "Authorization: JWT ${token}"'
   only:
     - tags
-  except:
-    - branches
