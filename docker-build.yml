@@ -80,8 +80,11 @@ stages:
     # Get last part of job name as architecture
     - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
     # Pull previous build image for retagging
-    - docker pull ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE}
+    - for i in 1 2 3 4 5 6 7 8 9 10; do
+        docker pull ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE} && break || sleep 30s;
+      done
     # Retag source to target image
+    # Loop since the image might not have been pushed yet
     - echo "Tagging ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE} to
         ${TARGET_DOCKER_IMAGE_NAME}:${TARGET_DOCKER_IMAGE_TAG}-${ARCHITECTURE}"
     - docker tag 
