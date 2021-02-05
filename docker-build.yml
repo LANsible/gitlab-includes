@@ -32,13 +32,13 @@ stages:
     # Get last part of job name as architecture
     - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
 
-    # Pull build stage image to use as cache
+    # Use latest branch imaga as a cache
     # Might not exist so use || true
-    - docker pull ${CI_REGISTRY_IMAGE}/master:${CI_COMMIT_SHA}-${ARCHITECTURE} || true
+    - docker pull ${DOCKER_IMAGE_NAME}:${CI_COMMIT_REF_SLUG}-${ARCHITECTURE} || true
 
     # Show command to run
     - echo docker build
-        --cache-from ${CI_REGISTRY_IMAGE}/master:${CI_COMMIT_SHA}-${ARCHITECTURE}
+        --cache-from ${DOCKER_IMAGE_NAME}:${CI_COMMIT_REF_SLUG}-${ARCHITECTURE}
         --build-arg "ARCHITECTURE=${ARCHITECTURE}"
         ${BUILD_ARGS}
         --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
@@ -53,7 +53,7 @@ stages:
 
     # Build and push container
     - docker build
-        --cache-from ${CI_REGISTRY_IMAGE}/master:${CI_COMMIT_SHA}-${ARCHITECTURE}
+        --cache-from ${DOCKER_IMAGE_NAME}:${CI_COMMIT_REF_SLUG}-${ARCHITECTURE}
         --build-arg "ARCHITECTURE=${ARCHITECTURE}"
         ${BUILD_ARGS}
         --label "org.label-schema.build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
