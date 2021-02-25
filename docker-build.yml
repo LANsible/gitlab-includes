@@ -41,7 +41,7 @@ variables:
         --label "org.label-schema.vendor=LANsible"
         --label "org.label-schema.version='${CI_COMMIT_REF_SLUG}'"
         --label "org.label-schema.schema-version='1.0'"
-        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
+        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE} .
 
     # Build and push container
     - docker build
@@ -56,8 +56,7 @@ variables:
         --label "org.label-schema.vendor=LANsible"
         --label "org.label-schema.version='${CI_COMMIT_REF_SLUG}'"
         --label "org.label-schema.schema-version='1.0'"
-        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
-        .
+        --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE} .
 
     - docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
 
