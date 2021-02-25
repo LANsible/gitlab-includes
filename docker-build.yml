@@ -8,23 +8,15 @@ variables:
   # BUILD_ARGS: --build-arg VERSION=2.9 --build-arg TEST=true
   BUILD_ARGS: ""
 
-stages:
-  - lint
-  - build
-  - test
-  - push
-  - manifest
-
 .build:
   tags:
     - local  # do not run on shared runner
-    - docker
   variables:
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
   # no need to run for tags, image commit should be built already
   except:
-    - tags  
+    - tags
   script:
     # Register needed qemu binaries
     - docker run --rm --privileged multiarch/qemu-user-static:register --reset
@@ -70,8 +62,6 @@ stages:
     - docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
 
 .retag:
-  tags:
-    - docker
   variables:
     # Always use commit sha as source
     SOURCE_DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
@@ -87,17 +77,15 @@ stages:
     # Loop since the image might not have been pushed yet
     - echo "Tagging ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE} to
         ${TARGET_DOCKER_IMAGE_NAME}:${TARGET_DOCKER_IMAGE_TAG}-${ARCHITECTURE}"
-    - docker tag 
+    - docker tag
         ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE}
-        ${TARGET_DOCKER_IMAGE_NAME}:${TARGET_DOCKER_IMAGE_TAG}-${ARCHITECTURE}  
+        ${TARGET_DOCKER_IMAGE_NAME}:${TARGET_DOCKER_IMAGE_TAG}-${ARCHITECTURE}
 
     - docker push ${TARGET_DOCKER_IMAGE_NAME}:${TARGET_DOCKER_IMAGE_TAG}-${ARCHITECTURE}
 
 .manifest:
   image: lansible/manifest-tool:master
   stage: manifest
-  tags:
-    - docker
   script:
     # Push manifest
     - manifest-tool push from-args

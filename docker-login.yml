@@ -1,8 +1,18 @@
 ---
+stages:
+  - lint
+  - build
+  - test
+  - push
+  - manifest
+
 default:
-  image: docker:19.03
+  image: docker:20.10.3
   services:
-    - docker:19.03-dind
+    - docker:20.10.3-dind
+  # Default use docker
+  tags:
+    - docker
   before_script:
     # Authenticate to project registry
     - echo "${CI_REGISTRY_PASSWORD}" | docker login -u "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"

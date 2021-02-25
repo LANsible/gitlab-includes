@@ -1,8 +1,6 @@
 # Run CIS benchmarks against the images/containers
 sast_cis_benchmark:
   stage: test
-  tags:
-    - docker
   # Skip if fails, for now
   allow_failure: true
   # Set run command default to empty, can be used for /bin/sleep 10
