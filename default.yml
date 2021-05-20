@@ -7,9 +7,9 @@ stages:
   - manifest
 
 default:
-  image: docker:20.10.3
+  image: docker:20.10.7
   services:
-    - docker:20.10.3-dind
+    - docker:20.10.7-dind
   # Default use docker
   tags:
     - docker
