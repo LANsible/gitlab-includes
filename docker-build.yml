@@ -72,10 +72,10 @@ variables:
     - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
     # Pull previous build image for retagging
     - for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do
-        docker pull ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}&& break || sleep 3m;
+        docker pull ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE} && break || sleep 3m;
       done
     # Retag source to target image
-    - echo "Tagging ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG} to
+    - echo "Tagging ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE} to
         ${TARGET_DOCKER_IMAGE_NAME}:${TARGET_DOCKER_IMAGE_TAG}-${ARCHITECTURE}"
     - docker tag
         ${SOURCE_DOCKER_IMAGE_NAME}:${SOURCE_DOCKER_IMAGE_TAG}-${ARCHITECTURE}
