@@ -17,13 +17,13 @@ variables:
   # no need to run for tags, image commit should be built already
   except:
     - tags
-  before_script:
+  script:
     # Setup buildx not default bundled
     # https://github.com/docker/buildx/#binary-release
     - mkdir -p /root/.docker/cli-plugins/
     - wget -O ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64
     - chmod a+x ~/.docker/cli-plugins/docker-buildx
-  script:
+
     # Get last part of job name as architecture
     - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
 
