@@ -17,6 +17,10 @@ variables:
   # no need to run for tags, image commit should be built already
   except:
     - tags
+  cache:
+    key: default  # one cache to rule them all
+    paths:
+      - .docker/cache
   script:
     # Setup buildx not default bundled
     # https://github.com/docker/buildx/#binary-release
@@ -32,10 +36,15 @@ variables:
         docker run --rm --privileged tonistiigi/binfmt --install ${ARCHITECTURE};
       fi
 
+    # Create buildx builder (instead of default docker), needed for the --cache-from, --cache-to
+    - docker buildx create --use
+
     # Show command to run
     - echo docker buildx build
         --platform=linux/${ARCHITECTURE}
         --progress=plain
+        --cache-from=type=local,src=.docker/cache
+        --cache-to=type=local,dest=.docker/cache,mode=max
         ${BUILD_ARGS}
         --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
         --label "org.opencontainers.image.authors='Wilmar den Ouden <info@wilmardenouden.nl>'"
@@ -51,6 +60,8 @@ variables:
     - docker buildx build
         --platform=linux/${ARCHITECTURE}
         --progress=plain
+        --cache-from=type=local,src=.docker/cache
+        --cache-to=type=local,dest=.docker/cache,mode=max
         ${BUILD_ARGS}
         --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
         --label "org.opencontainers.image.authors='Wilmar den Ouden <info@wilmardenouden.nl>'"
