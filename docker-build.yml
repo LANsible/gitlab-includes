@@ -37,7 +37,8 @@ variables:
       fi
 
     # Create buildx builder (instead of default docker), needed for the --cache-from, --cache-to
-    - docker buildx create --use
+    - docker context create gitlab
+    - docker buildx create --use gitlab
 
     # Show command to run
     - echo docker buildx build
