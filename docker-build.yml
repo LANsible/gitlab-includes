@@ -75,6 +75,7 @@ variables:
 
 # Implement this in your CI file like
 # test_amd64:
+#   extends: .test
 #   variables:
 #     DOCKER_COMMAND: --version
 .test:
@@ -83,12 +84,12 @@ variables:
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
     DOCKER_COMMAND: --help
-  # no need to run for tags, image commit should be built already
-  except:
-    - tags
   script:
     - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
     - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_COMMAND}
+  # no need to run for tags, image commit should be built already
+  except:
+    - tags
 
 .retag:
   stage: push
