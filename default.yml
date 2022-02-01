@@ -10,9 +10,8 @@ default:
   image: docker:20.10.12-alpine3.15
   services:
     - docker:20.10.12-dind-alpine3.15
-  # Default use docker
   tags:
-    - docker
+    - local  # do not run on shared runner
   before_script:
     # Authenticate to project registry
     - echo "${CI_REGISTRY_PASSWORD}" | docker login -u "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"

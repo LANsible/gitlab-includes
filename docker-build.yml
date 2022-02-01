@@ -10,8 +10,6 @@ variables:
 
 .build:
   stage: build
-  tags:
-    - local  # do not run on shared runner
   variables:
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
@@ -81,8 +79,6 @@ variables:
 #     DOCKER_COMMAND: --version
 .test:
   stage: test
-  tags:
-    - local  # do not run on shared runner
   variables:
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
