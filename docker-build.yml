@@ -8,20 +8,9 @@ variables:
   # BUILD_ARGS: --build-arg VERSION=2.9 --build-arg TEST=true
   BUILD_ARGS: ""
 
-.build:
-  stage: build
-  variables:
-    DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
-  # no need to run for tags, image commit should be built already
-  except:
-    - tags
-  cache:
-    key: ${CI_JOB_NAME}  # one cache per job to avoid architectures overwriting eachothers cache
-    paths:
-      - .docker/cache
+.setup_buildx:
   script:
-    # Setup buildx not default bundled
+    # Setup buildx not default bundled in docker/docker image
     # https://github.com/docker/buildx/#binary-release
     - mkdir -p /root/.docker/cli-plugins/
     - wget -O ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.7.1/buildx-v0.7.1.linux-amd64
@@ -38,6 +27,21 @@ variables:
     # Create buildx builder (instead of default docker), needed for the --cache-from, --cache-to
     - docker context create gitlab
     - docker buildx create --use gitlab
+
+.build:
+  stage: build
+  variables:
+    DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
+  # no need to run for tags, image commit should be built already
+  except:
+    - tags
+  cache:
+    key: ${CI_JOB_NAME}  # one cache per job to avoid architectures overwriting eachothers cache
+    paths:
+      - .docker/cache
+  script:
+    - !reference [.setup_buildx, script]
 
     # Show command to run
     - echo docker buildx build
@@ -85,7 +89,7 @@ variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
     DOCKER_COMMAND: --help
   script:
-    - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
+    - !reference [.setup_buildx, script]
     - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE} "${DOCKER_COMMAND}"
   # no need to run for tags, image commit should be built already
   except:
