@@ -86,7 +86,7 @@ variables:
     DOCKER_COMMAND: --help
   script:
     - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
-    - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_COMMAND}
+    - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE} "${DOCKER_COMMAND}"
   # no need to run for tags, image commit should be built already
   except:
     - tags
