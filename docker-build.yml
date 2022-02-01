@@ -17,7 +17,7 @@ variables:
   except:
     - tags
   cache:
-    key: default  # one cache to rule them all
+    key: ${CI_JOB_NAME}  # one cache per job to avoid architectures overwriting eachothers cache
     paths:
       - .docker/cache
   script:
