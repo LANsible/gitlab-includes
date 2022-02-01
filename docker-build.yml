@@ -9,6 +9,7 @@ variables:
   BUILD_ARGS: ""
 
 .build:
+  stage: build
   tags:
     - local  # do not run on shared runner
   variables:
@@ -74,7 +75,27 @@ variables:
         --tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE}
         --push .
 
+# Implement this in your CI file like
+# test_amd64:
+#   variables:
+#     DOCKER_COMMAND: --version
+.test:
+  stage: test
+  tags:
+    - local  # do not run on shared runner
+  variables:
+    DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
+    DOCKER_COMMAND: --help
+  # no need to run for tags, image commit should be built already
+  except:
+    - tags
+  script:
+    - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
+    - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_COMMAND}
+
 .retag:
+  stage: push
   variables:
     # Always use commit sha as source
     SOURCE_DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
@@ -96,8 +117,8 @@ variables:
     - docker push ${TARGET_DOCKER_IMAGE_NAME}:${TARGET_DOCKER_IMAGE_TAG}-${ARCHITECTURE}
 
 .manifest:
-  image: lansible/manifest-tool:master
   stage: manifest
+  image: lansible/manifest-tool:master
   script:
     # Push manifest
     - manifest-tool push from-args
@@ -110,16 +131,13 @@ variables:
 # Build stage
 build_amd64:
   extends: .build
-  stage: build
 
 build_arm64:
   extends: .build
-  stage: build
 
 # Push branch image
 .retag_branch:
   extends: .retag
-  stage: push
   variables:
     TARGET_DOCKER_IMAGE_NAME: ${DOCKER_IMAGE_NAME}
     TARGET_DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
@@ -132,22 +150,10 @@ retag_branch_amd64:
 retag_branch_arm64:
   extends: .retag_branch
 
-.manifest_branch:
-  extends: .manifest
-
-push_branch_manifest:
-  extends: .manifest
-  variables:
-    DOCKER_MANIFEST_TAG: ${CI_COMMIT_REF_SLUG}
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
-  only:
-    - branches
-
 
 # Push tagged release
 .retag_tag:
   extends: .retag
-  stage: push
   variables:
     TARGET_DOCKER_IMAGE_NAME: ${DOCKER_IMAGE_NAME}
     TARGET_DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
@@ -162,22 +168,29 @@ push_tag_arm64:
 
 
 # Setup manifests
-.manifest_tag:
+push_branch_manifest:
   extends: .manifest
+  variables:
+    DOCKER_MANIFEST_TAG: ${CI_COMMIT_REF_SLUG}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
   only:
-    - tags
+    - branches
 
 push_tag_manifest:
-  extends: .manifest_tag
+  extends: .manifest
   variables:
     DOCKER_MANIFEST_TAG: ${CI_COMMIT_TAG}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
+  only:
+    - tags
 
 push_latest_manifest:
-  extends: .manifest_tag
+  extends: .manifest
   variables:
     DOCKER_MANIFEST_TAG: latest
     DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
+  only:
+    - tags
 
 # Push readme to Docker Hub
 # https://www.sanisimov.com/2019/03/building-docker-images-for-multiple-architectures/
