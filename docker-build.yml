@@ -90,7 +90,7 @@ variables:
     DOCKER_TEST_COMMAND: --help
   script:
     - !reference [.setup_buildx, script]
-    - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE} "${DOCKER_TEST_COMMAND}"
+    - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE} ${DOCKER_TEST_COMMAND}
   # no need to run for tags, image commit should be built already
   except:
     - tags
