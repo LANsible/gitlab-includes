@@ -81,16 +81,16 @@ variables:
 # test_amd64:
 #   extends: .test
 #   variables:
-#     DOCKER_COMMAND: --version
+#     DOCKER_TEST_COMMAND: --version
 .test:
   stage: test
   variables:
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
-    DOCKER_COMMAND: --help
+    DOCKER_TEST_COMMAND: --help
   script:
     - !reference [.setup_buildx, script]
-    - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE} "${DOCKER_COMMAND}"
+    - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE} "${DOCKER_TEST_COMMAND}"
   # no need to run for tags, image commit should be built already
   except:
     - tags
