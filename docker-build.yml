@@ -7,6 +7,9 @@ variables:
   # build-args to add to the build
   # BUILD_ARGS: --build-arg VERSION=2.9 --build-arg TEST=true
   BUILD_ARGS: ""
+  # Added here to have lower predence then included variables
+  # Use to override when --help exists with a non zero code
+  DOCKER_TEST_COMMAND: --help
 
 .setup_buildx:
   script:
@@ -87,7 +90,6 @@ variables:
   variables:
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
-    DOCKER_TEST_COMMAND: --help
   script:
     - !reference [.setup_buildx, script]
     - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE} ${DOCKER_TEST_COMMAND}
