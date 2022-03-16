@@ -11,10 +11,14 @@ variables:
   # Use to override when --help exists with a non zero code
   DOCKER_TEST_COMMAND: --help
 
-.setup_qemu:
+.setup_buildx:
   script:
-    # Enable buildkit
-    - export DOCKER_BUILDKIT=1
+    # Setup buildx not default bundled in docker/docker image
+    # https://github.com/docker/buildx/#binary-release
+    - mkdir -p /root/.docker/cli-plugins/
+    - wget -O ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.8.0/buildx-v0.8.0.linux-amd64
+    - chmod a+x ~/.docker/cli-plugins/docker-buildx
+
     # Get last part of job name as architecture
     - export ARCHITECTURE=$(echo ${CI_JOB_NAME} | grep -o '[^_]*$')
 
@@ -22,6 +26,10 @@ variables:
     - if [ "${ARCHITECTURE}" != "amd64" ]; then
         docker run --rm --privileged tonistiigi/binfmt --install ${ARCHITECTURE};
       fi
+
+    # Create buildx builder (instead of default docker), needed for the --cache-to option
+    - docker context create gitlab
+    - docker buildx create --use gitlab
 
 .build:
   stage: build
@@ -36,10 +44,10 @@ variables:
     paths:
       - .docker/cache
   script:
-    - !reference [.setup_qemu, script]
+    - !reference [.setup_buildx, script]
 
     # Show command to run
-    - echo docker build
+    - echo docker buildx build
         --platform=linux/${ARCHITECTURE}
         --progress=plain
         --cache-from=type=local,src=.docker/cache
@@ -57,7 +65,7 @@ variables:
         --push .
 
     # Build and push container
-    - docker build
+    - docker buildx build
         --platform=linux/${ARCHITECTURE}
         --progress=plain
         --cache-from=type=local,src=.docker/cache
@@ -85,7 +93,7 @@ variables:
     DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
     DOCKER_IMAGE_TAG: ${CI_COMMIT_SHA}
   script:
-    - !reference [.setup_qemu, script]
+    - !reference [.setup_buildx, script]
     - docker run --platform=linux/${ARCHITECTURE} ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${ARCHITECTURE} ${DOCKER_TEST_COMMAND}
   # no need to run for tags, image commit should be built already
   except:
