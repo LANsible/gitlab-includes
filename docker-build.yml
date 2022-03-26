@@ -52,7 +52,6 @@ variables:
         --progress=plain
         --cache-from=type=local,src=.docker/cache
         --cache-to=type=local,dest=.docker/cache,mode=max
-        --build-arg BUILDKIT_INLINE_CACHE=1
         ${BUILD_ARGS}
         --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
         --label "org.opencontainers.image.authors='Wilmar den Ouden <info@wilmardenouden.nl>'"
@@ -70,7 +69,6 @@ variables:
         --progress=plain
         --cache-from=type=local,src=.docker/cache
         --cache-to=type=local,dest=.docker/cache,mode=max
-        --build-arg BUILDKIT_INLINE_CACHE=1
         ${BUILD_ARGS}
         --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
         --label "org.opencontainers.image.authors='Wilmar den Ouden <info@wilmardenouden.nl>'"
