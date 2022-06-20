@@ -16,7 +16,7 @@ variables:
     # Setup buildx not default bundled in docker/docker image
     # https://github.com/docker/buildx/#binary-release
     - mkdir -p /root/.docker/cli-plugins/
-    - wget -O ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.8.0/buildx-v0.8.0.linux-amd64
+    - wget -O ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.8.2/buildx-v0.8.2.linux-amd64
     - chmod a+x ~/.docker/cli-plugins/docker-buildx
 
     # Get last part of job name as architecture
